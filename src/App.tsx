@@ -24,10 +24,13 @@ const App: React.FC = () => {
       <CssBaseline />
       <Box className="header" component="header" display={"flex"}>
         <Link href='https://www.gov.co/'>
-          <img style={{height: "25px"}} src="https://css.mintic.gov.co/mt/mintic/img/header_govco.png" alt="" />
+          <img style={{ height: "25px" }} src="https://css.mintic.gov.co/mt/mintic/img/header_govco.png" alt="" />
         </Link>
       </Box>
       <Container className="main-content">
+        <Box component={"div"} sx={{textAlign: "center"}}>
+          <img style={{ width: "90%", objectFit: "contain"}} src="https://siaweb.itm.edu.co/BANNER-EN-LA-U-NOS-ENCTROMAS.png" alt="" />
+        </Box>
         <MainContent>
           <BrowserRouter>
             <Routes>
