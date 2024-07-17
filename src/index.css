@@ -1,0 +1,37 @@
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header, .footer {
+  background-color: #1976d2;
+  color: white;
+  text-align: center;
+  padding: 12px;
+}
+
+.main-content {
+  flex: 1;
+  margin: 16px 0;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+  .header, .footer {
+    padding: 8px;
+  }
+
+  .main-content {
+    padding: 8px;
+    margin: 8px 0;
+  }
+}
