@@ -3,7 +3,7 @@ import { Route, Routes, BrowserRouter } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
 import PersonalDataForm from './pages/PersonalDataForm';
-import { Container, Box, CssBaseline, Typography, Link } from '@mui/material';
+import { Container, Box, CssBaseline, Link } from '@mui/material';
 import { styled } from '@mui/system';
 
 const MainContent = styled(Box)(({ theme }) => ({
@@ -41,9 +41,6 @@ const App: React.FC = () => {
           </BrowserRouter>
         </MainContent>
       </Container>
-      <Box className="footer" component="footer">
-        <Typography variant="body2">Footer</Typography>
-      </Box>
     </>
   );
 }
