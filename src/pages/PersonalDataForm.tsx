@@ -344,7 +344,7 @@ const MyFormSection = () => {
                 id="gender-autocomplete"
                 options={countriesList}
                 getOptionLabel={(option) => option.label}
-                onChange={(event, value) =>
+                onChange={(_event, value) =>
                   setCountrySelected(value?.label || "")
                 }
                 renderInput={(params) => (
@@ -417,7 +417,7 @@ const MyFormSection = () => {
                 id="gender-autocomplete"
                 options={ethnicOptions}
                 getOptionLabel={(option) => option.label}
-                onChange={(event, value) =>
+                onChange={(_event, value) =>
                   setEthnicSelected(value?.label || "")
                 }
                 renderInput={(params) => (
@@ -459,7 +459,7 @@ const MyFormSection = () => {
                 row
                 defaultValue="outlined"
                 name="radio-buttons-group"
-                onChange={(event, value) => setHasDisability(value || "")}
+                onChange={(_event, value) => setHasDisability(value || "")}
               >
                 <FormControlLabel value="si" control={<Radio />} label="Si" />
                 <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -517,7 +517,7 @@ const MyFormSection = () => {
                 row
                 defaultValue="outlined"
                 name="radio-buttons-group"
-                onChange={(event, value) => setHasSisben(value || "")}
+                onChange={(_event, value) => setHasSisben(value || "")}
               >
                 <FormControlLabel value="si" control={<Radio />} label="Si" />
                 <FormControlLabel value="no" control={<Radio />} label="No" />
