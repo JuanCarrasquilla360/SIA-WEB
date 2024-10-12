@@ -1,55 +1,29 @@
-import { Box, Container, CssBaseline, Link } from "@mui/material";
-import { styled } from "@mui/system";
 import React from "react";
-import { HashRouter, Route, Routes } from "react-router-dom";
-import About from "./pages/About";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import { Box } from "@mui/material";
+import MyFormSection from "./pages/PersonalDataForm";
 import Home from "./pages/Home";
-import PersonalDataForm from "./pages/PersonalDataForm";
-
-const MainContent = styled(Box)(({ theme }) => ({
-  margin: theme.spacing(2, 0),
-  padding: theme.spacing(2),
-  background: "white",
-  borderRadius: "8px",
-  boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-  [theme.breakpoints.down("sm")]: {
-    margin: theme.spacing(1, 0),
-    padding: theme.spacing(1),
-  },
-}));
+// import PersonalInfo from "./components/PersonalInfo";
+// import ResidenceContact from "./components/ResidenceContact";
+// import ComplementaryData from "./components/ComplementaryData";
+// import CourseSelection from "./components/CourseSelection";
 
 const App: React.FC = () => {
   return (
-    <>
-      <CssBaseline />
-      <Box className="header" component="header" display={"flex"}>
-        <Link href="https://www.gov.co/">
-          <img
-            style={{ height: "25px" }}
-            src="https://css.mintic.gov.co/mt/mintic/img/header_govco.png"
-            alt=""
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route
+            path="residence-contact"
+            element={<Box height={200}>etst</Box>}
           />
-        </Link>
-      </Box>
-      <Container className="main-content">
-        <Box component={"div"} sx={{ textAlign: "center" }}>
-          <img
-            style={{ width: "90%", objectFit: "contain" }}
-            src="https://siaweb.itm.edu.co/BANNER-EN-LA-U-NOS-ENCTROMAS.png"
-            alt=""
-          />
-        </Box>
-        <MainContent>
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/personal-data" element={<PersonalDataForm />} />
-            </Routes>
-          </HashRouter>
-        </MainContent>
-      </Container>
-    </>
+          <Route path="complementary-data" element={<MyFormSection />} />
+          <Route path="course-selection" element={<>test3</>} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
