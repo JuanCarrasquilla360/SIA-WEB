@@ -1,9 +1,9 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
 import { Box } from "@mui/material";
-import MyFormSection from "./pages/PersonalDataForm";
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
 import Home from "./pages/Home";
+import MyFormSection from "./pages/PersonalDataForm";
 // import PersonalInfo from "./components/PersonalInfo";
 // import ResidenceContact from "./components/ResidenceContact";
 // import ComplementaryData from "./components/ComplementaryData";
@@ -11,7 +11,7 @@ import Home from "./pages/Home";
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/SIA-WEB">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
