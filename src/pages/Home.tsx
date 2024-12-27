@@ -12,8 +12,16 @@ import {
   AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Home: React.FC = () => {
+  const [valorDocumento, setValorDocumento] = useState(null);
+  const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleChange = (e: any) => {
+    setValorDocumento(e.target.value);
+  };
   return (
     <>
       <Typography
@@ -124,8 +132,14 @@ const Home: React.FC = () => {
                 sx={{ bgcolor: "white" }}
                 placeholder="Documento"
                 size="small"
+                name="doc"
+                value={null}
+                onChange={handleChange}
               />
-              <Button sx={{ bgcolor: "black", color: "white", mt: 1 }}>
+              <Button
+                sx={{ bgcolor: "black", color: "white", mt: 1 }}
+                onClick={() => navigate(`complementary-data/${valorDocumento}`)}
+              >
                 Ingresar
               </Button>
             </Box>
