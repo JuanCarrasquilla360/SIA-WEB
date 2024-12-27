@@ -19,7 +19,7 @@ const App: React.FC = () => {
             path="residence-contact"
             element={<Box height={200}>etst</Box>}
           />
-          <Route path="complementary-data" element={<MyFormSection />} />
+          <Route path="complementary-data/:id" element={<MyFormSection />} />
           <Route path="course-selection" element={<>test3</>} />
         </Route>
       </Routes>

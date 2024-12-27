@@ -6,12 +6,8 @@ import {
   Autocomplete,
   Box,
   Button,
-  FormControlLabel,
-  FormLabel,
   Grid,
   IconButton,
-  Radio,
-  RadioGroup,
   TextField,
   Tooltip,
   Typography,
@@ -20,7 +16,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { IconInfoOctagon } from "@tabler/icons-react";
+import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 export interface Countries {
   name: {
     common: string;
@@ -39,10 +37,8 @@ export interface Eng {
 }
 const MyFormSection = () => {
   const [countriesList, setCountriesList] = useState([{ label: "" }]);
-  const [countrySelected, setCountrySelected] = useState("");
-  const [ethnicSelected, setEthnicSelected] = useState("");
-  const [hasDisability, setHasDisability] = useState("");
-  const [hasSisben, setHasSisben] = useState("");
+  const { id } = useParams();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [file, setFile] = useState<any>(null);
 
@@ -50,6 +46,69 @@ const MyFormSection = () => {
   const handleFileChange = (event: any) => {
     setFile(event.target.files[0]);
   };
+  const [formData, setFormData] = useState({
+    tipoDocumento: "",
+    documentoIdentificacion: "",
+    lugarExpedicion: "",
+    fechaExpedicion: dayjs(null),
+    apellidos: "",
+    nombres: "",
+    genero: "",
+    fechaNacimiento: dayjs(null),
+    paisNacimiento: "",
+    departamentoNacimiento: "",
+    ciudadNacimiento: "",
+    correoElectronico: "",
+    confirmarCorreo: "",
+  });
+
+  const [isEditable, setIsEditable] = useState(true);
+
+  useEffect(() => {
+    console.log(id);
+
+    if (id === "123") {
+      setFormData({
+        tipoDocumento: "Cédula de Ciudadanía",
+        documentoIdentificacion: "123456789",
+        lugarExpedicion: "Medellín(Antioquia)",
+        fechaExpedicion: dayjs("2020-01-01"),
+        apellidos: "Pérez Gómez",
+        nombres: "Juan Carlos",
+        genero: "Masculino",
+        fechaNacimiento: dayjs("1990-05-15"),
+        paisNacimiento: "Colombia",
+        departamentoNacimiento: "Antioquia",
+        ciudadNacimiento: "Medellín(Antioquia)",
+        correoElectronico: "juan.perez@example.com",
+        confirmarCorreo: "juan.perez@example.com",
+      });
+      setIsEditable(false);
+    } else {
+      alert("La cédula no existe");
+      setIsEditable(true);
+    }
+  }, [id]);
+  const cursos = [
+    { label: "Introducción a la Programación" },
+    { label: "Marketing Digital para Emprendedores" },
+    { label: "Excel Avanzado y Herramientas de Negocios" },
+    { label: "Fotografía Digital y Edición" },
+    { label: "Fundamentos de Diseño Gráfico" },
+    { label: "Habilidades de Comunicación Efectiva" },
+    { label: "Técnicas de Ventas y Negociación" },
+    { label: "Desarrollo Web con HTML y CSS" },
+    { label: "Introducción al Análisis de Datos" },
+    { label: "Gestión de Proyectos con Metodologías Ágiles" },
+  ];
+  const campus = [
+    { label: "Campus Fraternidad" },
+    { label: "Campus Robledo" },
+    { label: "Campus Castilla" },
+    { label: "Campus La Floresta" },
+    { label: "Campus Boston" },
+    { label: "Virtual" },
+  ];
   const genderOptions = [{ label: "Masculino" }, { label: "Femenino" }];
   const documentType = [
     { label: "Cédula de Ciudadanía" },
@@ -131,68 +190,6 @@ const MyFormSection = () => {
     { label: "Vaupés" },
     { label: "Vichada" },
   ];
-  const maritalStatus = [
-    { label: "Soltero" },
-    { label: "Casado" },
-    { label: "Unión Libre" },
-    { label: "Viudo" },
-    { label: "Separado" },
-    { label: "Divorciado" },
-  ];
-  const ethnicOptions = [
-    { label: "Indígena" },
-    { label: "Afrocolombiano" },
-    { label: "Rom ó Gitano" },
-    { label: "Raizal" },
-    { label: "No Aplica" },
-  ];
-  const disabilityOptions = [
-    { label: "Auditiva - Sordo Profundo Usuario de Lengua de Señas" },
-    { label: "Motora - Paraplejia" },
-    { label: "Visual - Ceguera Total" },
-    { label: "Motora - Lesión Neuromuscular" },
-    { label: "Auditiva - Hipoacusico Usuario de Lengua de Señas" },
-    { label: "Auditiva - Hipoacusico Oralizado" },
-    { label: "Motora - Cuadriplejia" },
-    { label: "Motora - Hemiplejia" },
-    { label: "Motora - Distrofia Muscular" },
-    { label: "Motora - Amputación" },
-    { label: "Motora - Parálisis Cerebral" },
-    { label: "Visual - Baja Visión" },
-    { label: "Psicosocial" },
-    { label: "Motora - Otra" },
-    { label: "Intelectual" },
-    { label: "Multiple" },
-    { label: "Psicosocial - Esquizofrenia" },
-    { label: "Déficit de atención e hiperactividad" },
-    { label: "Síndrome de Asperger" },
-  ];
-  const blackOptions = [
-    { label: "No Aplica" },
-    { label: "Afrocolombianos" },
-    { label: "Raizales" },
-    { label: "Palenqueros" },
-    { label: "Otras Comunidades Negras" },
-  ];
-  const assistanceOptions = [
-    { label: "Ninguno" },
-    { label: "Implante Coclear" },
-    { label: "Audífonos" },
-    { label: "Perro Guía" },
-    { label: "Bastón Guía" },
-    { label: "Silla de Ruedas" },
-    { label: "Bastón de Apoyo" },
-    { label: "Caminador" },
-    { label: "Ayuda de Otras Personas" },
-    { label: "Muletas" },
-    { label: "Aditamentos (prótesis, férulas, implantes)" },
-    { label: "Otra" },
-  ];
-  const lgtbiCommunity = [
-    { label: "Prefiero no contestar" },
-    { label: "Si" },
-    { label: "No" },
-  ];
   const getCountries = async () => {
     try {
       const response = await fetch(
@@ -219,47 +216,32 @@ const MyFormSection = () => {
       return [];
     }
   };
-  const sisbenGroups = () => {
-    const formattedGroups = [];
 
-    // Generar los grupos A1 a A5
-    for (let i = 1; i <= 5; i++) {
-      formattedGroups.push({ label: `Grupo A${i}` });
-    }
-
-    // Generar los grupos B1 a B7
-    for (let i = 1; i <= 7; i++) {
-      formattedGroups.push({ label: `Grupo B${i}` });
-    }
-
-    // Generar los grupos C1 a C18
-    for (let i = 1; i <= 18; i++) {
-      formattedGroups.push({ label: `Grupo C${i}` });
-    }
-
-    // Generar los grupos D1 a D21
-    for (let i = 1; i <= 21; i++) {
-      formattedGroups.push({ label: `Grupo D${i}` });
-    }
-
-    // Imprimir el arreglo
-    return formattedGroups;
-  };
-  const estratos = () => {
-    const estratos = [];
-
-    // Generar los grupos A1 a A5
-    for (let i = 1; i <= 6; i++) {
-      estratos.push({ label: `${i}` });
-    }
-    return estratos;
-  };
   useEffect(() => {
     getCountries().then((res) => setCountriesList(res));
   }, []);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleAutocompleteChange = (
+    _: React.SyntheticEvent,
+    value: { label: string } | null,
+    fieldName: string
+  ) => {
+    setFormData({ ...formData, [fieldName]: value?.label || "" });
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    console.log("Formulario enviado: ", formData);
+  };
 
   return (
-    <div>
+    <form onSubmit={handleSubmit}>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -270,69 +252,136 @@ const MyFormSection = () => {
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={3}>
+            {/* Tipo de Documento */}
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
-                id="document-autocomplete"
+                id="document-type-autocomplete"
                 options={documentType}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(event, value, "tipoDocumento")
+                }
+                disabled={!isEditable}
+                value={
+                  documentType.find(
+                    (option) => option.label === formData.tipoDocumento
+                  ) || null
+                }
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
-                  <TextField {...params} label="Tipo de Documento" />
+                  <TextField {...params} label="Tipo de Documento" fullWidth />
                 )}
               />
             </Grid>
+
+            {/* Documento Identificación */}
             <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Documento Identificación" fullWidth />
+              <TextField
+                label="Documento Identificación"
+                name="documentoIdentificacion"
+                disabled={!isEditable}
+                onChange={handleChange}
+                value={formData.documentoIdentificacion}
+                fullWidth
+              />
             </Grid>
+
+            {/* Lugar de Expedición */}
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
-                id="document-autocomplete"
+                id="expedition-city-autocomplete"
                 options={expeditionCity}
+                disabled={!isEditable}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(event, value, "lugarExpedicion")
+                }
+                value={
+                  expeditionCity.find(
+                    (option) => option.label === formData.lugarExpedicion
+                  ) || null
+                }
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
-                  <TextField {...params} label="Lugar de expedición" />
+                  <TextField
+                    {...params}
+                    label="Lugar de expedición"
+                    fullWidth
+                  />
                 )}
               />
             </Grid>
+
+            {/* Fecha de Expedición */}
             <Grid item xs={12} sm={6} md={4}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Fecha de expedición del documento"
+                  label="Fecha de Expedición"
+                  value={formData.fechaExpedicion}
+                  disabled={!isEditable}
+                  onChange={(newValue: Dayjs | null) =>
+                    setFormData({ ...formData, fechaExpedicion: newValue! })
+                  }
                   slots={{
                     textField: (params) => <TextField {...params} fullWidth />,
                   }}
                 />
               </LocalizationProvider>
             </Grid>
+
+            {/* Nombres */}
             <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Apellidos" fullWidth />
+              <TextField
+                label="Nombres"
+                name="nombres"
+                disabled={!isEditable}
+                onChange={handleChange}
+                value={formData.nombres}
+                fullWidth
+              />
             </Grid>
+
+            {/* Apellidos */}
             <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Nombres" fullWidth />
+              <TextField
+                label="Apellidos"
+                name="apellidos"
+                disabled={!isEditable}
+                onChange={handleChange}
+                value={formData.apellidos}
+                fullWidth
+              />
             </Grid>
+
+            {/* Género */}
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
                 options={genderOptions}
+                disabled={!isEditable}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(event, value, "genero")
+                }
+                value={
+                  genderOptions.find(
+                    (option) => option.label === formData.genero
+                  ) || null
+                }
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
-                  <TextField {...params} label="Género" />
+                  <TextField {...params} label="Género" fullWidth />
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={maritalStatus}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Estado Civil" />
-                )}
-              />
-            </Grid>
+
+            {/* Fecha de Nacimiento */}
             <Grid item xs={12} sm={6} md={4}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Fecha de nacimiento"
+                  label="Fecha de Nacimiento"
+                  disabled={!isEditable}
+                  value={formData.fechaNacimiento}
+                  onChange={(newValue: Dayjs | null) =>
+                    setFormData({ ...formData, fechaNacimiento: newValue! })
+                  }
                   slots={{
                     textField: (params) => <TextField {...params} fullWidth />,
                   }}
@@ -344,8 +393,14 @@ const MyFormSection = () => {
                 id="gender-autocomplete"
                 options={countriesList}
                 getOptionLabel={(option) => option.label}
-                onChange={(_event, value) =>
-                  setCountrySelected(value?.label || "")
+                disabled={!isEditable}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(event, value, "paisNacimiento")
+                }
+                value={
+                  countriesList.find(
+                    (option) => option.label === formData.paisNacimiento
+                  ) || null
                 }
                 renderInput={(params) => (
                   <TextField {...params} label="Pais de nacimiento" />
@@ -355,8 +410,20 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
-                disabled={countrySelected !== "Colombia"}
+                disabled={formData.paisNacimiento !== "Colombia" || !isEditable}
                 options={colombianDepartments}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(
+                    event,
+                    value,
+                    "departamentoNacimiento"
+                  )
+                }
+                value={
+                  colombianDepartments.find(
+                    (option) => option.label === formData.departamentoNacimiento
+                  ) || null
+                }
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
                   <TextField {...params} label="Departamento de nacimiento" />
@@ -366,250 +433,44 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
-                options={colombianDepartments}
-                disabled={countrySelected !== "Colombia"}
+                options={expeditionCity}
+                disabled={formData.paisNacimiento !== "Colombia" || !isEditable}
+                onChange={(event, value) =>
+                  handleAutocompleteChange(event, value, "ciudadNacimiento")
+                }
+                value={
+                  expeditionCity.find(
+                    (option) => option.label === formData.ciudadNacimiento
+                  ) || null
+                }
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
                   <TextField {...params} label="Ciudad de nacimiento" />
                 )}
               />
             </Grid>
+
+            {/* Correo Electrónico */}
             <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>
-                ¿Tiene usted equipo de cómputo y/o dispositivo móvil?
-              </FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-              >
-                <FormControlLabel value="si" control={<Radio />} label="Si" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>
-                {" "}
-                ¿Tiene usted conectividad de red (internet)?
-              </FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-              >
-                <FormControlLabel value="si" control={<Radio />} label="Si" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>¿Solicitó Presupuesto Participativo?</FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-              >
-                <FormControlLabel value="si" control={<Radio />} label="Si" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={ethnicOptions}
-                getOptionLabel={(option) => option.label}
-                onChange={(_event, value) =>
-                  setEthnicSelected(value?.label || "")
-                }
-                renderInput={(params) => (
-                  <TextField {...params} label="Grupo étnico" />
-                )}
+              <TextField
+                label="Correo Electrónico"
+                name="correoElectronico"
+                disabled={!isEditable}
+                onChange={handleChange}
+                value={formData.correoElectronico}
+                fullWidth
               />
             </Grid>
+
+            {/* Confirmar Correo */}
             <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={ethnicOptions}
-                getOptionLabel={(option) => option.label}
-                disabled={ethnicSelected !== "Indígena"}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Pueblo indigena al que pertenece"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={blackOptions}
-                getOptionLabel={(option) => option.label}
-                disabled={ethnicSelected !== "Afrocolombiano"}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Comunidad negra a la que pertenece"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>¿Presenta algún tipo de Discapacidad?</FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-                onChange={(_event, value) => setHasDisability(value || "")}
-              >
-                <FormControlLabel value="si" control={<Radio />} label="Si" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>¿Es Desplazado o Victima de violencia?</FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-              >
-                <FormControlLabel
-                  disabled={hasDisability !== "si"}
-                  value="si"
-                  control={<Radio />}
-                  label="Si"
-                />
-                <FormControlLabel
-                  disabled={hasDisability !== "si"}
-                  value="no"
-                  control={<Radio />}
-                  label="No"
-                />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={disabilityOptions}
-                getOptionLabel={(option) => option.label}
-                disabled={hasDisability !== "si"}
-                renderInput={(params) => (
-                  <TextField {...params} label="Tipo de Discapacidad" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={assistanceOptions}
-                getOptionLabel={(option) => option.label}
-                disabled={hasDisability !== "si"}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="	¿Utiliza o tiene algún tipo de apoyo?"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormLabel>¿Tiene Sisben?</FormLabel>
-              <RadioGroup
-                row
-                defaultValue="outlined"
-                name="radio-buttons-group"
-                onChange={(_event, value) => setHasSisben(value || "")}
-              >
-                <FormControlLabel value="si" control={<Radio />} label="Si" />
-                <FormControlLabel value="no" control={<Radio />} label="No" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={sisbenGroups()}
-                getOptionLabel={(option) => option.label}
-                disabled={hasSisben !== "si"}
-                renderInput={(params) => (
-                  <TextField {...params} label="Grupo de Sisben" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Correo Electrónico" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Confirmar correo" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Correo alternativo" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={lgtbiCommunity}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="¿Te identificas como miembro de la comunidad LGBTIQ+?"
-                  />
-                )}
-              />
-            </Grid>
-            {/* Agrega más campos según tus necesidades */}
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel2-content"
-          id="panel2-header"
-        >
-          Datos residencia
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Dirección" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={estratos()}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Estrato" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Teléfono" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Celular" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label="Dirección" fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={expeditionCity}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Ciudad" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={expeditionCity}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Barrio" />
-                )}
+              <TextField
+                label="Confirmar Correo"
+                name="confirmarCorreo"
+                disabled={!isEditable}
+                onChange={handleChange}
+                value={formData.confirmarCorreo}
+                fullWidth
               />
             </Grid>
           </Grid>
@@ -628,7 +489,8 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 id="gender-autocomplete"
-                options={[]}
+                options={cursos}
+                getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
                   <TextField {...params} label="Primera Opción" />
                 )}
@@ -637,25 +499,8 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 id="gender-autocomplete"
-                options={[]}
-                renderInput={(params) => (
-                  <TextField {...params} label="Campus" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={[]}
-                renderInput={(params) => (
-                  <TextField {...params} label="Segunda Opción" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={[]}
+                options={campus}
+                getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
                   <TextField {...params} label="Campus" />
                 )}
@@ -685,7 +530,7 @@ const MyFormSection = () => {
             >
               <Box component={"div"} display={"flex"} justifyContent={"center"}>
                 <Typography display={"flex"} alignItems={"center"}>
-                  Diploma
+                  Cedula
                 </Typography>
                 <Tooltip title="Se recomienda adjuntar archivos con número de cedula seguido de un guión bajo (_) seguido del nombre sugerido. Ejemplo: 123_cedula  ">
                   <IconButton>
@@ -694,37 +539,7 @@ const MyFormSection = () => {
                 </Tooltip>
               </Box>
               <Button variant="contained" component="label">
-                Adjuntar Diploma
-                <input type="file" hidden onChange={handleFileChange} />
-              </Button>
-
-              {file && (
-                <Box mt={2}>
-                  <p>Archivo seleccionado: {file.name}</p>
-                </Box>
-              )}
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={6}
-              display={"flex"}
-              alignItems={"center"}
-              flexDirection={"column"}
-            >
-              <Box component={"div"} display={"flex"} justifyContent={"center"}>
-                <Typography display={"flex"} alignItems={"center"}>
-                  Diploma
-                </Typography>
-                <Tooltip title="Se recomienda adjuntar archivos con número de cedula seguido de un guión bajo (_) seguido del nombre sugerido. Ejemplo: 123_cedula  ">
-                  <IconButton>
-                    <IconInfoOctagon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Button variant="contained" component="label">
-                Adjuntar Diploma
+                Adjuntar Cedula
                 <input type="file" hidden onChange={handleFileChange} />
               </Button>
 
@@ -747,7 +562,7 @@ const MyFormSection = () => {
       >
         Enviar
       </Button>
-    </div>
+    </form>
   );
 };
 
