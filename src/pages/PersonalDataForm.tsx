@@ -19,6 +19,7 @@ import { IconInfoOctagon } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Alumno, AlumnoData, Ciudad, Departamento, getAlumnoEgresado, getCiudades, getDepartamentos, getPaises, Pais } from "../helper/backendRequest";
 export interface Countries {
   name: {
     common: string;
@@ -35,8 +36,13 @@ export interface Eng {
   official: string;
   common: string;
 }
+interface AutocompleteId {
+  label: string;
+  value: number
+}
+
 const MyFormSection = () => {
-  const [countriesList, setCountriesList] = useState([{ label: "" }]);
+
   const { id } = useParams();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,49 +52,139 @@ const MyFormSection = () => {
   const handleFileChange = (event: any) => {
     setFile(event.target.files[0]);
   };
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    tipoDocumento: string;
+    documentoIdentificacion: string;
+    lugarExpedicion: number | null;
+    fechaExpedicion: dayjs.Dayjs;
+    apellidos: string;
+    nombres: string;
+    genero: string;
+    fechaNacimiento: dayjs.Dayjs;
+    paisNacimiento: number | null;
+    departamentoNacimiento: number | null;
+    ciudadNacimiento: number | null;
+    correoElectronico: string,
+    confirmarCorreo: string;
+  }>({
     tipoDocumento: "",
     documentoIdentificacion: "",
-    lugarExpedicion: "",
+    lugarExpedicion: null,
     fechaExpedicion: dayjs(null),
     apellidos: "",
     nombres: "",
     genero: "",
     fechaNacimiento: dayjs(null),
-    paisNacimiento: "",
-    departamentoNacimiento: "",
-    ciudadNacimiento: "",
+    paisNacimiento: null,
+    departamentoNacimiento: null,
+    ciudadNacimiento: null,
     correoElectronico: "",
     confirmarCorreo: "",
   });
 
+  const [alumnoData, setAlumnoData] = useState<Alumno | null>(null);
+  const [paises, setPaises] = useState<AutocompleteId[]>([]);
+  const [departamentos, setDepartamentos] = useState<AutocompleteId[]>([]);
+  const [ciudades, setCiudades] = useState<AutocompleteId[]>([]);
+  const [ciudadesExp, setCiudadesExp] = useState<AutocompleteId[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Función para obtener la información del alumno egresado
+  const fetchAlumnoData = async () => {
+    try {
+      if (!id) return
+      const data = await getAlumnoEgresado(id);
+      setAlumnoData(data.data[0]);
+    } catch (err) {
+      setError('Hubo un error al obtener los datos del alumno');
+    }
+  };
+
+  // Función para obtener la lista de países
+  const fetchPaises = async () => {
+    try {
+      const data = await getPaises();
+      console.log(data);
+
+      setPaises(data.data.map(pais => ({ label: pais.pais, value: pais["Id Pais"] })));
+    } catch (err) {
+      setError('Hubo un error al obtener los países');
+    }
+  };
+
+  useEffect(() => {
+    console.log(formData);
+    if (formData.paisNacimiento && formData.paisNacimiento === 1) {
+      fetchDepartamentos(1)
+    }
+    if (formData.departamentoNacimiento) {
+      fetchCiudades(formData.departamentoNacimiento)
+    }
+  }, [formData])
+
+  // Función para obtener departamentos por país
+  const fetchDepartamentos = async (idPais: number) => {
+    try {
+      const data = await getDepartamentos(idPais);
+      setDepartamentos(data.data.map(dep => ({ label: dep.Depto, value: dep["Id Depto"] })));
+    } catch (err) {
+      setError('Hubo un error al obtener los departamentos');
+    }
+  };
+
+  // Función para obtener ciudades por departamento
+  const fetchCiudades = async (idDepto: number) => {
+    try {
+      const data = await getCiudades(idDepto);
+      setCiudades(data.data.map(ciudad => ({ label: ciudad.Ciudad, value: ciudad["Id Ciudad"] })));
+    } catch (err) {
+      setError('Hubo un error al obtener las ciudades');
+    }
+  };
+  // Función para obtener ciudades por departamento
+  const fetchCiudadesExp = async (idDepto: number) => {
+    try {
+      const data = await getCiudades(idDepto);
+      setCiudadesExp(data.data.map(ciudad => ({ label: ciudad.Ciudad, value: ciudad["Id Ciudad"] })));
+    } catch (err) {
+      setError('Hubo un error al obtener las ciudades');
+    }
+  };
+
+  useEffect(() => {
+    fetchPaises();
+    fetchCiudadesExp(2);
+    fetchAlumnoData()
+  }, []);
+
   const [isEditable, setIsEditable] = useState(true);
 
   useEffect(() => {
-    console.log(id);
-
-    if (id === "123") {
-      setFormData({
-        tipoDocumento: "Cédula de Ciudadanía",
-        documentoIdentificacion: "123456789",
-        lugarExpedicion: "Medellín(Antioquia)",
-        fechaExpedicion: dayjs("2020-01-01"),
-        apellidos: "Pérez Gómez",
-        nombres: "Juan Carlos",
-        genero: "Masculino",
-        fechaNacimiento: dayjs("1990-05-15"),
-        paisNacimiento: "Colombia",
-        departamentoNacimiento: "Antioquia",
-        ciudadNacimiento: "Medellín(Antioquia)",
-        correoElectronico: "juan.perez@example.com",
-        confirmarCorreo: "juan.perez@example.com",
-      });
-      setIsEditable(false);
-    } else {
+    console.log(alumnoData);
+    if (!alumnoData) return
+    if (alumnoData && alumnoData?.Estado === "no_registra") {
       alert("La cédula no existe");
       setIsEditable(true);
+      return 
     }
-  }, [id]);
+    setFormData({
+      tipoDocumento: "Cédula de Ciudadanía",
+      documentoIdentificacion: alumnoData?.Documento!,
+      lugarExpedicion: alumnoData?.["Id Ciudad Documento"],
+      fechaExpedicion: dayjs(alumnoData?.["Fecha Expedicion"]!),
+      apellidos: alumnoData?.Apellidos!,
+      nombres: alumnoData?.Nombres!,
+      genero: "Masculino",
+      fechaNacimiento: dayjs(alumnoData?.["Fecha Nacimiento"]!),
+      paisNacimiento: 1,
+      departamentoNacimiento: 2,
+      ciudadNacimiento: alumnoData?.["Id Ciudad Nacimiento"],
+      correoElectronico: alumnoData?.["Correo Electronico"]!,
+      confirmarCorreo: alumnoData?.["Correo Electronico"]!,
+    });
+    setIsEditable(false);
+
+  }, [alumnoData]);
   const cursos = [
     { label: "Introducción a la Programación" },
     { label: "Marketing Digital para Emprendedores" },
@@ -122,104 +218,11 @@ const MyFormSection = () => {
     { label: "Certificado Cabildo" },
     { label: "Permiso por Protección Temporal" },
   ];
-  const expeditionCity = [
-    { label: "Leticia(Amazonas)" },
-    { label: "Medellín(Antioquia)" },
-    { label: "Arauca(Arauca)" },
-    { label: "Barranquilla(Atlántico)" },
-    { label: "Bogotá(Bogotá D.C.)" },
-    { label: "Cartagena(Bolívar)" },
-    { label: "Tunja(Boyacá)" },
-    { label: "Manizales(Caldas)" },
-    { label: "Florencia(Caquetá)" },
-    { label: "Yopal(Casanare)" },
-    { label: "Popayán(Cauca)" },
-    { label: "Valledupar(Cesar)" },
-    { label: "Quibdó(Chocó)" },
-    { label: "Montería(Córdoba)" },
-    { label: "Bogotá(Cundinamarca)" },
-    { label: "Inírida(Guainía)" },
-    { label: "San José del Guaviare(Guaviare)" },
-    { label: "Neiva(Huila)" },
-    { label: "Riohacha(La Guajira)" },
-    { label: "Santa Marta(Magdalena)" },
-    { label: "Villavicencio(Meta)" },
-    { label: "Pasto(Nariño)" },
-    { label: "Cúcuta(Norte de Santander)" },
-    { label: "Mocoa(Putumayo)" },
-    { label: "Armenia(Quindío)" },
-    { label: "Pereira(Risaralda)" },
-    { label: "Bucaramanga(Santander)" },
-    { label: "Sincelejo(Sucre)" },
-    { label: "Ibagué(Tolima)" },
-    { label: "Cali(Valle del Cauca)" },
-    { label: "Mitú(Vaupés)" },
-    { label: "Puerto Carreño(Vichada)" },
-  ];
-  const colombianDepartments = [
-    { label: "Amazonas" },
-    { label: "Antioquia" },
-    { label: "Arauca" },
-    { label: "Atlántico" },
-    { label: "Bolívar" },
-    { label: "Boyacá" },
-    { label: "Caldas" },
-    { label: "Caquetá" },
-    { label: "Casanare" },
-    { label: "Cauca" },
-    { label: "Cesar" },
-    { label: "Chocó" },
-    { label: "Córdoba" },
-    { label: "Cundinamarca" },
-    { label: "Guainía" },
-    { label: "Guaviare" },
-    { label: "Huila" },
-    { label: "La Guajira" },
-    { label: "Magdalena" },
-    { label: "Meta" },
-    { label: "Nariño" },
-    { label: "Norte de Santander" },
-    { label: "Putumayo" },
-    { label: "Quindío" },
-    { label: "Risaralda" },
-    { label: "San Andrés y Providencia" },
-    { label: "Santander" },
-    { label: "Sucre" },
-    { label: "Tolima" },
-    { label: "Valle del Cauca" },
-    { label: "Vaupés" },
-    { label: "Vichada" },
-  ];
-  const getCountries = async () => {
-    try {
-      const response = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name"
-      );
-      const countries: Countries[] = await response.json();
-      console.log(countries);
-
-      return countries
-        .map((country) => ({
-          label: country.name.common,
-        }))
-        .sort((a, b) => {
-          if (a.label < b.label) {
-            return -1;
-          }
-          if (a.label > b.label) {
-            return 1;
-          }
-          return 0;
-        });
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-      return [];
-    }
-  };
 
   useEffect(() => {
-    getCountries().then((res) => setCountriesList(res));
+    fetchPaises();
   }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -229,10 +232,10 @@ const MyFormSection = () => {
 
   const handleAutocompleteChange = (
     _: React.SyntheticEvent,
-    value: { label: string } | null,
+    value: { label: string, value?: number } | null,
     fieldName: string
   ) => {
-    setFormData({ ...formData, [fieldName]: value?.label || "" });
+    setFormData({ ...formData, [fieldName]: value?.value ? value?.value : value?.label || "" });
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = (e: any) => {
@@ -289,14 +292,14 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="expedition-city-autocomplete"
-                options={expeditionCity}
+                options={ciudadesExp}
                 disabled={!isEditable}
                 onChange={(event, value) =>
                   handleAutocompleteChange(event, value, "lugarExpedicion")
                 }
                 value={
-                  expeditionCity.find(
-                    (option) => option.label === formData.lugarExpedicion
+                  ciudadesExp.find(
+                    (option) => option.value === formData.lugarExpedicion
                   ) || null
                 }
                 getOptionLabel={(option) => option.label}
@@ -391,15 +394,15 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
-                options={countriesList}
+                options={paises}
                 getOptionLabel={(option) => option.label}
                 disabled={!isEditable}
                 onChange={(event, value) =>
                   handleAutocompleteChange(event, value, "paisNacimiento")
                 }
                 value={
-                  countriesList.find(
-                    (option) => option.label === formData.paisNacimiento
+                  paises.find(
+                    (option) => option.value === formData.paisNacimiento
                   ) || null
                 }
                 renderInput={(params) => (
@@ -410,8 +413,8 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
-                disabled={formData.paisNacimiento !== "Colombia" || !isEditable}
-                options={colombianDepartments}
+                disabled={formData.paisNacimiento !== 1 || !isEditable}
+                options={departamentos}
                 onChange={(event, value) =>
                   handleAutocompleteChange(
                     event,
@@ -420,8 +423,8 @@ const MyFormSection = () => {
                   )
                 }
                 value={
-                  colombianDepartments.find(
-                    (option) => option.label === formData.departamentoNacimiento
+                  departamentos.find(
+                    (option) => option.value === formData.departamentoNacimiento
                   ) || null
                 }
                 getOptionLabel={(option) => option.label}
@@ -433,14 +436,14 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="gender-autocomplete"
-                options={expeditionCity}
-                disabled={formData.paisNacimiento !== "Colombia" || !isEditable}
+                options={ciudades}
+                disabled={formData.paisNacimiento !== 1 || !isEditable}
                 onChange={(event, value) =>
                   handleAutocompleteChange(event, value, "ciudadNacimiento")
                 }
                 value={
-                  expeditionCity.find(
-                    (option) => option.label === formData.ciudadNacimiento
+                  ciudades.find(
+                    (option) => option.value === formData.ciudadNacimiento
                   ) || null
                 }
                 getOptionLabel={(option) => option.label}
