@@ -37,6 +37,16 @@ interface CiudadesResponse {
     data: Ciudad[];
     message?: string;
 }
+interface TipoDocumentoResponse {
+    status: string;
+    data: TipoDocumento[];
+    message?: string;
+}
+interface TipoDocumento {
+    "Id Tipo Documento": number;
+    "Tipo Documento": string;
+}
+
 export interface AlumnoData {
     status: string
     data: Alumno[]
@@ -187,6 +197,16 @@ export const getCiudades = async (idDepto: number): Promise<CiudadesResponse> =>
         const response = await axiosInstance.get('/ciudad/', {
             params: { id_depto: idDepto },
         });
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener la lista de ciudades:', error);
+        throw error;
+    }
+};
+
+export const getTipoDocumento = async (): Promise<TipoDocumentoResponse> => {
+    try {
+        const response = await axiosInstance.get('/tipo_documento/');
         return response.data;
     } catch (error) {
         console.error('Error al obtener la lista de ciudades:', error);

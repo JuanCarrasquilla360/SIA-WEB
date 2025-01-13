@@ -19,7 +19,7 @@ import { IconInfoOctagon } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Alumno, AlumnoData, Ciudad, Departamento, getAlumnoEgresado, getCiudades, getDepartamentos, getPaises, Pais } from "../helper/backendRequest";
+import { Alumno, AlumnoData, Ciudad, Departamento, getAlumnoEgresado, getCiudades, getDepartamentos, getPaises, getTipoDocumento, Pais } from "../helper/backendRequest";
 export interface Countries {
   name: {
     common: string;
@@ -53,13 +53,13 @@ const MyFormSection = () => {
     setFile(event.target.files[0]);
   };
   const [formData, setFormData] = useState<{
-    tipoDocumento: string;
+    tipoDocumento: number | null;
     documentoIdentificacion: string;
     lugarExpedicion: number | null;
     fechaExpedicion: dayjs.Dayjs;
     apellidos: string;
     nombres: string;
-    genero: string;
+    genero: number | null;
     fechaNacimiento: dayjs.Dayjs;
     paisNacimiento: number | null;
     departamentoNacimiento: number | null;
@@ -67,13 +67,13 @@ const MyFormSection = () => {
     correoElectronico: string,
     confirmarCorreo: string;
   }>({
-    tipoDocumento: "",
+    tipoDocumento: null,
     documentoIdentificacion: "",
     lugarExpedicion: null,
     fechaExpedicion: dayjs(null),
     apellidos: "",
     nombres: "",
-    genero: "",
+    genero: null,
     fechaNacimiento: dayjs(null),
     paisNacimiento: null,
     departamentoNacimiento: null,
@@ -87,6 +87,7 @@ const MyFormSection = () => {
   const [departamentos, setDepartamentos] = useState<AutocompleteId[]>([]);
   const [ciudades, setCiudades] = useState<AutocompleteId[]>([]);
   const [ciudadesExp, setCiudadesExp] = useState<AutocompleteId[]>([]);
+  const [tipoDoc, setTipoDoc] = useState<AutocompleteId[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Función para obtener la información del alumno egresado
@@ -150,11 +151,21 @@ const MyFormSection = () => {
       setError('Hubo un error al obtener las ciudades');
     }
   };
+  // Función para obtener ciudades por departamento
+  const fetchTipoDocumento = async () => {
+    try {
+      const data = await getTipoDocumento();
+      setTipoDoc(data.data.map(documento => ({ label: documento["Tipo Documento"], value: documento["Id Tipo Documento"] })));
+    } catch (err) {
+      setError('Hubo un error al obtener las ciudades');
+    }
+  };
 
   useEffect(() => {
     fetchPaises();
     fetchCiudadesExp(2);
-    fetchAlumnoData()
+    fetchAlumnoData();
+    fetchTipoDocumento();
   }, []);
 
   const [isEditable, setIsEditable] = useState(true);
@@ -165,16 +176,16 @@ const MyFormSection = () => {
     if (alumnoData && alumnoData?.Estado === "no_registra") {
       alert("La cédula no existe");
       setIsEditable(true);
-      return 
+      return
     }
     setFormData({
-      tipoDocumento: "Cédula de Ciudadanía",
+      tipoDocumento: alumnoData?.["Id Tipo Documento"]!,
       documentoIdentificacion: alumnoData?.Documento!,
       lugarExpedicion: alumnoData?.["Id Ciudad Documento"],
       fechaExpedicion: dayjs(alumnoData?.["Fecha Expedicion"]!),
       apellidos: alumnoData?.Apellidos!,
       nombres: alumnoData?.Nombres!,
-      genero: "Masculino",
+      genero: alumnoData["Id Sexo"],
       fechaNacimiento: dayjs(alumnoData?.["Fecha Nacimiento"]!),
       paisNacimiento: 1,
       departamentoNacimiento: 2,
@@ -205,19 +216,8 @@ const MyFormSection = () => {
     { label: "Campus Boston" },
     { label: "Virtual" },
   ];
-  const genderOptions = [{ label: "Masculino" }, { label: "Femenino" }];
-  const documentType = [
-    { label: "Cédula de Ciudadanía" },
-    { label: "Tarjeta de Identidad" },
-    { label: "Cédula de Extranjería" },
-    { label: "Registro Civil" },
-    { label: "Número de Identificación Tributaria" },
-    { label: "Pasaporte" },
-    { label: "Visa" },
-    { label: "Documento Nacional de Identidad Extranjera" },
-    { label: "Certificado Cabildo" },
-    { label: "Permiso por Protección Temporal" },
-  ];
+  const genderOptions: AutocompleteId[] = [{ label: "Masculino", value: 1 }, { label: "Femenino", value: 2 }];
+
 
   useEffect(() => {
     fetchPaises();
@@ -259,14 +259,14 @@ const MyFormSection = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Autocomplete
                 id="document-type-autocomplete"
-                options={documentType}
+                options={tipoDoc}
                 onChange={(event, value) =>
                   handleAutocompleteChange(event, value, "tipoDocumento")
                 }
                 disabled={!isEditable}
                 value={
-                  documentType.find(
-                    (option) => option.label === formData.tipoDocumento
+                  tipoDoc.find(
+                    (option) => option.value === formData.tipoDocumento
                   ) || null
                 }
                 getOptionLabel={(option) => option.label}
@@ -365,7 +365,7 @@ const MyFormSection = () => {
                 }
                 value={
                   genderOptions.find(
-                    (option) => option.label === formData.genero
+                    (option) => option.value === formData.genero
                   ) || null
                 }
                 getOptionLabel={(option) => option.label}
