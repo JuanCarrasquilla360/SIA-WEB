@@ -19,7 +19,7 @@ import { IconInfoOctagon } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Alumno, AlumnoData, Ciudad, Departamento, getAlumnoEgresado, getCiudades, getDepartamentos, getPaises, getTipoDocumento, Pais } from "../helper/backendRequest";
+import { Alumno, AlumnoData, Ciudad, Departamento, getAlumno, getCiudades, getCursosExtension, getDepartamentos, getEgresado, getPaises, getTipoDocumento, Pais, postAlumno } from "../helper/backendRequest";
 export interface Countries {
   name: {
     common: string;
@@ -39,6 +39,10 @@ export interface Eng {
 interface AutocompleteId {
   label: string;
   value: number
+}
+interface AutocompleteIdStr {
+  label: string;
+  value: string
 }
 
 const MyFormSection = () => {
@@ -66,6 +70,7 @@ const MyFormSection = () => {
     ciudadNacimiento: number | null;
     correoElectronico: string,
     confirmarCorreo: string;
+    tipoUsuario: string
   }>({
     tipoDocumento: null,
     documentoIdentificacion: "",
@@ -80,22 +85,38 @@ const MyFormSection = () => {
     ciudadNacimiento: null,
     correoElectronico: "",
     confirmarCorreo: "",
+    tipoUsuario: ""
   });
 
   const [alumnoData, setAlumnoData] = useState<Alumno | null>(null);
+  const [egresadoData, setEgresadoData] = useState<Alumno | null>(null);
   const [paises, setPaises] = useState<AutocompleteId[]>([]);
   const [departamentos, setDepartamentos] = useState<AutocompleteId[]>([]);
   const [ciudades, setCiudades] = useState<AutocompleteId[]>([]);
   const [ciudadesExp, setCiudadesExp] = useState<AutocompleteId[]>([]);
   const [tipoDoc, setTipoDoc] = useState<AutocompleteId[]>([]);
+  const [cursos, setCursos] = useState<AutocompleteId[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Función para obtener la información del alumno egresado
   const fetchAlumnoData = async () => {
     try {
       if (!id) return
-      const data = await getAlumnoEgresado(id);
+      const data = await getAlumno(id);
+      console.log(data.data[0]);
+
       setAlumnoData(data.data[0]);
+    } catch (err) {
+      setError('Hubo un error al obtener los datos del alumno');
+    }
+  };
+  const fetchEgresadoData = async () => {
+    try {
+      if (!id) return
+      const data = await getEgresado(id);
+      console.log(data.data[0]);
+
+      setEgresadoData(data.data[0]);
     } catch (err) {
       setError('Hubo un error al obtener los datos del alumno');
     }
@@ -105,16 +126,13 @@ const MyFormSection = () => {
   const fetchPaises = async () => {
     try {
       const data = await getPaises();
-      console.log(data);
-
-      setPaises(data.data.map(pais => ({ label: pais.pais, value: pais["Id Pais"] })));
+      setPaises(data.data.map(pais => ({ label: pais.Pais, value: pais["Id Pais"] })));
     } catch (err) {
       setError('Hubo un error al obtener los países');
     }
   };
 
   useEffect(() => {
-    console.log(formData);
     if (formData.paisNacimiento && formData.paisNacimiento === 1) {
       fetchDepartamentos(1)
     }
@@ -160,15 +178,42 @@ const MyFormSection = () => {
       setError('Hubo un error al obtener las ciudades');
     }
   };
+  // Función para obtener ciudades por departamento
+  const fetchCursos = async () => {
+    try {
+      const { data } = await getCursosExtension();
+      setCursos(data.map(curso => ({ label: curso.Curso, value: curso["Id Curso"] })))
+    } catch (err) {
+      setError('Hubo un error al obtener las ciudades');
+    }
+  };
 
   useEffect(() => {
     fetchPaises();
     fetchCiudadesExp(2);
     fetchAlumnoData();
     fetchTipoDocumento();
+    fetchCursos();
+    fetchEgresadoData()
   }, []);
 
   const [isEditable, setIsEditable] = useState(true);
+  const [tipoUsuario, setTipoUsuario] = useState<AutocompleteIdStr[]>([
+    { label: "Particular", value: "particular" },
+    { label: "Comunidad ITM: Estudiantes", value: "comunidad_itm_estudiantes" },
+    { label: "Comunidad ITM: Egresados", value: "comunidad_itm_egresados" },
+    { label: "Comunidad ITM: Empleados", value: "comunidad_itm_empleados" },
+    { label: "Comunidad ITM: Docentes", value: "comunidad_itm_docentes" },
+    {
+      label: "Familiares de los Empleados ITM en primer grado de consanguinidad, primero de afinidad y primero civil",
+      value: "familiares_empleados_itm_primer_grado_consanguinidad_afinidad_civil"
+    },
+    {
+      label: "Empleados adscritos al Municipio de Medellín / Comunidad Sinergia (Estudiantes, egresados, empleados, docentes de la IUPB e IUCM)",
+      value: "empleados_municipio_medellin_comunidad_sinergia"
+    }
+  ]);
+
 
   useEffect(() => {
     console.log(alumnoData);
@@ -178,6 +223,7 @@ const MyFormSection = () => {
       setIsEditable(true);
       return
     }
+    setTipoUsuario((user => ([...user, { label: alumnoData.Estado, value: alumnoData.Estado }])))
     setFormData({
       tipoDocumento: alumnoData?.["Id Tipo Documento"]!,
       documentoIdentificacion: alumnoData?.Documento!,
@@ -192,36 +238,15 @@ const MyFormSection = () => {
       ciudadNacimiento: alumnoData?.["Id Ciudad Nacimiento"],
       correoElectronico: alumnoData?.["Correo Electronico"]!,
       confirmarCorreo: alumnoData?.["Correo Electronico"]!,
+      tipoUsuario: alumnoData.Estado
     });
     setIsEditable(false);
 
   }, [alumnoData]);
-  const cursos = [
-    { label: "Introducción a la Programación" },
-    { label: "Marketing Digital para Emprendedores" },
-    { label: "Excel Avanzado y Herramientas de Negocios" },
-    { label: "Fotografía Digital y Edición" },
-    { label: "Fundamentos de Diseño Gráfico" },
-    { label: "Habilidades de Comunicación Efectiva" },
-    { label: "Técnicas de Ventas y Negociación" },
-    { label: "Desarrollo Web con HTML y CSS" },
-    { label: "Introducción al Análisis de Datos" },
-    { label: "Gestión de Proyectos con Metodologías Ágiles" },
-  ];
-  const campus = [
-    { label: "Campus Fraternidad" },
-    { label: "Campus Robledo" },
-    { label: "Campus Castilla" },
-    { label: "Campus La Floresta" },
-    { label: "Campus Boston" },
-    { label: "Virtual" },
-  ];
+
+
+
   const genderOptions: AutocompleteId[] = [{ label: "Masculino", value: 1 }, { label: "Femenino", value: 2 }];
-
-
-  useEffect(() => {
-    fetchPaises();
-  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -232,253 +257,289 @@ const MyFormSection = () => {
 
   const handleAutocompleteChange = (
     _: React.SyntheticEvent,
-    value: { label: string, value?: number } | null,
+    value: { label: string, value?: number | string } | null,
     fieldName: string
   ) => {
     setFormData({ ...formData, [fieldName]: value?.value ? value?.value : value?.label || "" });
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
+    const body = {
+      "IdTipoDocumento": formData.tipoDocumento!,
+      "Documento": formData.documentoIdentificacion,
+      "IdCiudadDocumento": formData.ciudadNacimiento!,
+      "FechaExpedicion": formData.fechaExpedicion,
+      "Apellidos": formData.apellidos!,
+      "Nombres": formData.nombres!,
+      "IdSexo": formData.genero!,
+      "FechaNacimiento": formData.fechaNacimiento,
+      "IdCiudadNacimiento": formData.ciudadNacimiento!,
+      "CorreoElectronico": formData.correoElectronico!,
+    }
+    await postAlumno(body).then(() => alert("Usuario creado existosamente"))
     console.log("Formulario enviado: ", formData);
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1-content"
-          id="panel1-header"
-        >
-          Datos Personales
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={3}>
-            {/* Tipo de Documento */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="document-type-autocomplete"
-                options={tipoDoc}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(event, value, "tipoDocumento")
-                }
-                disabled={!isEditable}
-                value={
-                  tipoDoc.find(
-                    (option) => option.value === formData.tipoDocumento
-                  ) || null
-                }
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Tipo de Documento" fullWidth />
-                )}
-              />
-            </Grid>
+      {!alumnoData ? (
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            Datos Personales
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              {/* Tipo de Documento */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Autocomplete
+                  id="document-type-autocomplete"
+                  options={tipoDoc}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "tipoDocumento")
+                  }
+                  disabled={!isEditable}
+                  value={
+                    tipoDoc.find(
+                      (option) => option.value === formData.tipoDocumento
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Tipo de Documento" fullWidth />
+                  )}
+                />
+              </Grid>
 
-            {/* Documento Identificación */}
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Documento Identificación"
-                name="documentoIdentificacion"
-                disabled={!isEditable}
-                onChange={handleChange}
-                value={formData.documentoIdentificacion}
-                fullWidth
-              />
-            </Grid>
+              {/* Documento Identificación */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  label="Documento Identificación"
+                  name="documentoIdentificacion"
+                  disabled={!isEditable}
+                  onChange={handleChange}
+                  value={formData.documentoIdentificacion}
+                  fullWidth
+                />
+              </Grid>
 
-            {/* Lugar de Expedición */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="expedition-city-autocomplete"
-                options={ciudadesExp}
-                disabled={!isEditable}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(event, value, "lugarExpedicion")
-                }
-                value={
-                  ciudadesExp.find(
-                    (option) => option.value === formData.lugarExpedicion
-                  ) || null
-                }
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Lugar de expedición"
-                    fullWidth
+              {/* Lugar de Expedición */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Autocomplete
+                  id="expedition-city-autocomplete"
+                  options={ciudadesExp}
+                  disabled={!isEditable}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "lugarExpedicion")
+                  }
+                  value={
+                    ciudadesExp.find(
+                      (option) => option.value === formData.lugarExpedicion
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Lugar de expedición"
+                      fullWidth
+                    />
+                  )}
+                />
+              </Grid>
+
+              {/* Fecha de Expedición */}
+              <Grid item xs={12} sm={6} md={4}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Fecha de Expedición"
+                    value={formData.fechaExpedicion}
+                    disabled={!isEditable}
+                    onChange={(newValue: Dayjs | null) =>
+                      setFormData({ ...formData, fechaExpedicion: newValue! })
+                    }
+                    slots={{
+                      textField: (params) => <TextField {...params} fullWidth />,
+                    }}
                   />
-                )}
-              />
-            </Grid>
+                </LocalizationProvider>
+              </Grid>
 
-            {/* Fecha de Expedición */}
-            <Grid item xs={12} sm={6} md={4}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Fecha de Expedición"
-                  value={formData.fechaExpedicion}
+              {/* Nombres */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  label="Nombres"
+                  name="nombres"
                   disabled={!isEditable}
-                  onChange={(newValue: Dayjs | null) =>
-                    setFormData({ ...formData, fechaExpedicion: newValue! })
-                  }
-                  slots={{
-                    textField: (params) => <TextField {...params} fullWidth />,
-                  }}
+                  onChange={handleChange}
+                  value={formData.nombres}
+                  fullWidth
                 />
-              </LocalizationProvider>
-            </Grid>
+              </Grid>
 
-            {/* Nombres */}
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Nombres"
-                name="nombres"
-                disabled={!isEditable}
-                onChange={handleChange}
-                value={formData.nombres}
-                fullWidth
-              />
-            </Grid>
-
-            {/* Apellidos */}
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Apellidos"
-                name="apellidos"
-                disabled={!isEditable}
-                onChange={handleChange}
-                value={formData.apellidos}
-                fullWidth
-              />
-            </Grid>
-
-            {/* Género */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={genderOptions}
-                disabled={!isEditable}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(event, value, "genero")
-                }
-                value={
-                  genderOptions.find(
-                    (option) => option.value === formData.genero
-                  ) || null
-                }
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Género" fullWidth />
-                )}
-              />
-            </Grid>
-
-            {/* Fecha de Nacimiento */}
-            <Grid item xs={12} sm={6} md={4}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Fecha de Nacimiento"
+              {/* Apellidos */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  label="Apellidos"
+                  name="apellidos"
                   disabled={!isEditable}
-                  value={formData.fechaNacimiento}
-                  onChange={(newValue: Dayjs | null) =>
-                    setFormData({ ...formData, fechaNacimiento: newValue! })
-                  }
-                  slots={{
-                    textField: (params) => <TextField {...params} fullWidth />,
-                  }}
+                  onChange={handleChange}
+                  value={formData.apellidos}
+                  fullWidth
                 />
-              </LocalizationProvider>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={paises}
-                getOptionLabel={(option) => option.label}
-                disabled={!isEditable}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(event, value, "paisNacimiento")
-                }
-                value={
-                  paises.find(
-                    (option) => option.value === formData.paisNacimiento
-                  ) || null
-                }
-                renderInput={(params) => (
-                  <TextField {...params} label="Pais de nacimiento" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                disabled={formData.paisNacimiento !== 1 || !isEditable}
-                options={departamentos}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(
-                    event,
-                    value,
-                    "departamentoNacimiento"
-                  )
-                }
-                value={
-                  departamentos.find(
-                    (option) => option.value === formData.departamentoNacimiento
-                  ) || null
-                }
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Departamento de nacimiento" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={ciudades}
-                disabled={formData.paisNacimiento !== 1 || !isEditable}
-                onChange={(event, value) =>
-                  handleAutocompleteChange(event, value, "ciudadNacimiento")
-                }
-                value={
-                  ciudades.find(
-                    (option) => option.value === formData.ciudadNacimiento
-                  ) || null
-                }
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Ciudad de nacimiento" />
-                )}
-              />
-            </Grid>
+              </Grid>
 
-            {/* Correo Electrónico */}
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Correo Electrónico"
-                name="correoElectronico"
-                disabled={!isEditable}
-                onChange={handleChange}
-                value={formData.correoElectronico}
-                fullWidth
-              />
-            </Grid>
+              {/* Género */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Autocomplete
+                  id="gender-autocomplete"
+                  options={genderOptions}
+                  disabled={!isEditable}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "genero")
+                  }
+                  value={
+                    genderOptions.find(
+                      (option) => option.value === formData.genero
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Género" fullWidth />
+                  )}
+                />
+              </Grid>
 
-            {/* Confirmar Correo */}
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Confirmar Correo"
-                name="confirmarCorreo"
-                disabled={!isEditable}
-                onChange={handleChange}
-                value={formData.confirmarCorreo}
-                fullWidth
-              />
+              {/* Fecha de Nacimiento */}
+              <Grid item xs={12} sm={6} md={4}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Fecha de Nacimiento"
+                    disabled={!isEditable}
+                    value={formData.fechaNacimiento}
+                    onChange={(newValue: Dayjs | null) =>
+                      setFormData({ ...formData, fechaNacimiento: newValue! })
+                    }
+                    slots={{
+                      textField: (params) => <TextField {...params} fullWidth />,
+                    }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} sx={{ display: !isEditable ? "none" : "block" }}>
+                <Autocomplete
+                  id="gender-autocomplete"
+                  options={paises}
+                  getOptionLabel={(option) => option.label}
+                  disabled={!isEditable}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "paisNacimiento")
+                  }
+                  value={
+                    paises.find(
+                      (option) => option.value === formData.paisNacimiento
+                    ) || null
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Pais de nacimiento" />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} sx={{ display: !isEditable ? "none" : "block" }}>
+                <Autocomplete
+                  id="gender-autocomplete"
+                  disabled={formData.paisNacimiento !== 1 || !isEditable}
+                  options={departamentos}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(
+                      event,
+                      value,
+                      "departamentoNacimiento"
+                    )
+                  }
+                  value={
+                    departamentos.find(
+                      (option) => option.value === formData.departamentoNacimiento
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Departamento de nacimiento" />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <Autocomplete
+                  id="gender-autocomplete"
+                  options={ciudades}
+                  disabled={formData.paisNacimiento !== 1 || !isEditable}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "ciudadNacimiento")
+                  }
+                  value={
+                    ciudades.find(
+                      (option) => option.value === formData.ciudadNacimiento
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Ciudad de nacimiento" />
+                  )}
+                />
+              </Grid>
+
+              {/* Correo Electrónico */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  label="Correo Electrónico"
+                  name="correoElectronico"
+                  disabled={!isEditable}
+                  onChange={handleChange}
+                  value={formData.correoElectronico}
+                  fullWidth
+                />
+              </Grid>
+
+              {/* Confirmar Correo */}
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  label="Confirmar Correo"
+                  name="confirmarCorreo"
+                  disabled={!isEditable}
+                  onChange={handleChange}
+                  value={formData.confirmarCorreo}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <Autocomplete
+                  id="gender-autocomplete"
+                  options={tipoUsuario}
+                  disabled={!isEditable}
+                  onChange={(event, value) =>
+                    handleAutocompleteChange(event, value, "tipoUsuario")
+                  }
+                  value={
+                    tipoUsuario.find(
+                      (option) => option.value === formData.tipoUsuario
+                    ) || null
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Tipo Usuario" />
+                  )}
+                />
+              </Grid>
             </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+          </AccordionDetails>
+        </Accordion>
+      ) : (
+        <Typography>{`El usuario con documento ${id} es estudiante`}</Typography>
+      )}
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -489,23 +550,13 @@ const MyFormSection = () => {
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={6}>
+            <Grid item xs={12} sm={12} md={12}>
               <Autocomplete
                 id="gender-autocomplete"
                 options={cursos}
                 getOptionLabel={(option) => option.label}
                 renderInput={(params) => (
-                  <TextField {...params} label="Primera Opción" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Autocomplete
-                id="gender-autocomplete"
-                options={campus}
-                getOptionLabel={(option) => option.label}
-                renderInput={(params) => (
-                  <TextField {...params} label="Campus" />
+                  <TextField {...params} label="Lista de Cursos" />
                 )}
               />
             </Grid>
@@ -570,3 +621,4 @@ const MyFormSection = () => {
 };
 
 export default MyFormSection;
+// estudiante, docente, egresado, no_registra(familiar empleado - empleado adscrito  - particular)

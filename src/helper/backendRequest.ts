@@ -10,7 +10,7 @@ interface AlumnoEgresadoResponse {
 }
 export interface Pais {
     "Id Pais": number;
-    pais: string;
+    Pais: string;
 }
 interface PaisesResponse {
     status: string;
@@ -35,6 +35,15 @@ export interface Ciudad {
 interface CiudadesResponse {
     status: string;
     data: Ciudad[];
+    message?: string;
+}
+interface Cursos {
+    Curso: string;
+    "Id Curso": number;
+}
+interface CursosResponse {
+    status: string;
+    data: Cursos[];
     message?: string;
 }
 interface TipoDocumentoResponse {
@@ -156,10 +165,47 @@ export interface Alumno {
     cargue_Documentos: number
 }
 
+export interface BodyAlumno {
+    IdTipoDocumento: number
+    Documento: string
+    IdCiudadDocumento: number
+    FechaExpedicion: string
+    Apellidos: string
+    Nombres: string
+    IdSexo: number
+    FechaNacimiento: string
+    IdCiudadNacimiento: number
+    CorreoElectronico: string
+}
 
-export const getAlumnoEgresado = async (documento: string): Promise<AlumnoEgresadoResponse> => {
+function obtenerAnoYSemestre() {
+    const fecha = new Date();
+    const anio = fecha.getFullYear();
+    const mes = fecha.getMonth() + 1; // Los meses van de 0 a 11, por eso sumamos 1
+
+    // Determinamos el semestre
+    const semestre = mes <= 6 ? 1 : 2;
+
+    return { anio, semestre };
+}
+
+
+
+export const getAlumno = async (documento: string): Promise<AlumnoEgresadoResponse> => {
     try {
-        const response = await axiosInstance.get('/alumno-egresado/', {
+        const { anio, semestre } = obtenerAnoYSemestre()
+        const response = await axiosInstance.get('/alumno/', {
+            params: { documento, anio, periodo: semestre },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener la información del alumno egresado:', error);
+        throw error;
+    }
+};
+export const getEgresado = async (documento: string): Promise<AlumnoEgresadoResponse> => {
+    try {
+        const response = await axiosInstance.get('/egresado/', {
             params: { documento },
         });
         return response.data;
@@ -182,7 +228,7 @@ export const getPaises = async (): Promise<PaisesResponse> => {
 
 export const getDepartamentos = async (idPais: number): Promise<DepartamentosResponse> => {
     try {
-        const response = await axiosInstance.get('/depto/', {
+        const response = await axiosInstance.get('/departamento/', {
             params: { id_pais: idPais },
         });
         return response.data;
@@ -207,6 +253,28 @@ export const getCiudades = async (idDepto: number): Promise<CiudadesResponse> =>
 export const getTipoDocumento = async (): Promise<TipoDocumentoResponse> => {
     try {
         const response = await axiosInstance.get('/tipo_documento/');
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener la lista de ciudades:', error);
+        throw error;
+    }
+};
+
+export const postAlumno = async (body: BodyAlumno): Promise<any> => {
+    try {
+        const response = await axiosInstance.post('/alumno/', body);
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener la lista de ciudades:', error);
+        throw error;
+    }
+};
+export const getCursosExtension = async (): Promise<CursosResponse> => {
+    try {
+        const { anio, semestre } = obtenerAnoYSemestre()
+        const response = await axiosInstance.get('/cursos_extension/', {
+            params: { anio, periodo: semestre },
+        });
         return response.data;
     } catch (error) {
         console.error('Error al obtener la lista de ciudades:', error);
