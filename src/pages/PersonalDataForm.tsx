@@ -19,7 +19,7 @@ import { IconInfoOctagon } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Alumno, AlumnoData, Ciudad, Departamento, getAlumno, getCiudades, getCursosExtension, getDepartamentos, getEgresado, getPaises, getTipoDocumento, Pais, postAlumno } from "../helper/backendRequest";
+import { Alumno, AlumnoData, Ciudad, Departamento, getAlumno, getCiudades, getCursosExtension, getDepartamentos, getEgresado, getPaises, getTipoDocumento, obtenerAnoYSemestre, Pais, postAlumno } from "../helper/backendRequest";
 export interface Countries {
   name: {
     common: string;
@@ -91,6 +91,7 @@ const MyFormSection = () => {
   const [alumnoData, setAlumnoData] = useState<Alumno | null>(null);
   const [egresadoData, setEgresadoData] = useState<Alumno | null>(null);
   const [paises, setPaises] = useState<AutocompleteId[]>([]);
+  const { anio, semestre } = obtenerAnoYSemestre()
   const [departamentos, setDepartamentos] = useState<AutocompleteId[]>([]);
   const [ciudades, setCiudades] = useState<AutocompleteId[]>([]);
   const [ciudadesExp, setCiudadesExp] = useState<AutocompleteId[]>([]);
@@ -546,7 +547,7 @@ const MyFormSection = () => {
           aria-controls="panel3-content"
           id="panel3-header"
         >
-          DATOS DE INSCRIPCIÓN PARA EL PERIODO - 2024-2
+          {`DATOS DE INSCRIPCIÓN PARA EL PERIODO - ${anio}-${semestre}`}
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={3}>

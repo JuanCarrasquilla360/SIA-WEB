@@ -178,7 +178,7 @@ export interface BodyAlumno {
     CorreoElectronico: string
 }
 
-function obtenerAnoYSemestre() {
+export function obtenerAnoYSemestre() {
     const fecha = new Date();
     const anio = fecha.getFullYear();
     const mes = fecha.getMonth() + 1; // Los meses van de 0 a 11, por eso sumamos 1
